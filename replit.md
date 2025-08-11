@@ -34,7 +34,7 @@ Uses **PostgreSQL** with **Drizzle ORM** for type-safe database operations:
 - **Schema Validation**: Drizzle-zod integration for automatic schema validation
 - **Migration Support**: Drizzle Kit for database schema migrations
 
-Key design decisions include automatic leave balance calculation and immediate deduction upon request submission (no approval workflow).
+Key design decisions include automatic leave balance calculation, immediate deduction upon request submission (no approval workflow), and full edit/delete functionality for leave requests with automatic balance restoration.
 
 ## Calendar System
 Integrated **FullCalendar** provides:

@@ -1,7 +1,7 @@
 import { users, leaveRequests, type User, type InsertUser, type LeaveRequest, type InsertLeaveRequest } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, gte, lte } from "drizzle-orm";
-import session, { SessionStore } from "express-session";
+import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { pool } from "./db";
 
@@ -19,12 +19,14 @@ export interface IStorage {
   getUserLeaveRequests(userId: string): Promise<LeaveRequest[]>;
   getAllLeaveRequests(): Promise<(LeaveRequest & { user: User })[]>;
   getLeaveRequestById(id: string): Promise<LeaveRequest | undefined>;
+  updateLeaveRequest(id: string, request: Partial<InsertLeaveRequest>): Promise<LeaveRequest>;
+  deleteLeaveRequest(id: string): Promise<void>;
   
-  sessionStore: SessionStore;
+  sessionStore: session.Store;
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: SessionStore;
+  sessionStore: session.Store;
 
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 
@@ -104,6 +106,19 @@ export class DatabaseStorage implements IStorage {
   async getLeaveRequestById(id: string): Promise<LeaveRequest | undefined> {
     const [request] = await db.select().from(leaveRequests).where(eq(leaveRequests.id, id));
     return request || undefined;
+  }
+
+  async updateLeaveRequest(id: string, request: Partial<InsertLeaveRequest>): Promise<LeaveRequest> {
+    const [updatedRequest] = await db
+      .update(leaveRequests)
+      .set(request)
+      .where(eq(leaveRequests.id, id))
+      .returning();
+    return updatedRequest;
+  }
+
+  async deleteLeaveRequest(id: string): Promise<void> {
+    await db.delete(leaveRequests).where(eq(leaveRequests.id, id));
   }
 }
 

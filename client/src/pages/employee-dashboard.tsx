@@ -8,11 +8,13 @@ import { CalendarCheck, Calendar, CheckCircle, Clock, LogOut, User, Settings } f
 import { LeaveRequestForm } from "@/components/leave-request-form";
 import { CalendarComponent } from "@/components/calendar";
 import { ChangePasswordForm } from "@/components/change-password-form";
+import { LeaveList } from "@/components/leave-list";
 import type { LeaveRequest, User as UserType } from "@shared/schema";
 
 export default function EmployeeDashboard() {
   const { user, logoutMutation } = useAuth();
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showLeaveList, setShowLeaveList] = useState(false);
 
   if (user?.role === "admin") {
     return <Redirect to="/admin" />;
@@ -57,7 +59,22 @@ export default function EmployeeDashboard() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowChangePassword(!showChangePassword)}
+                onClick={() => {
+                  setShowLeaveList(!showLeaveList);
+                  setShowChangePassword(false);
+                }}
+                data-testid="button-my-leaves"
+              >
+                <Calendar className="h-4 w-4 mr-2" />
+                My Leaves
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowChangePassword(!showChangePassword);
+                  setShowLeaveList(false);
+                }}
                 data-testid="button-settings"
               >
                 <Settings className="h-4 w-4 mr-2" />
@@ -127,10 +144,12 @@ export default function EmployeeDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Leave Request Form / Settings */}
+          {/* Leave Request Form / Settings / Leave List */}
           <div className="lg:col-span-1">
             {showChangePassword ? (
               <ChangePasswordForm />
+            ) : showLeaveList ? (
+              <LeaveList requests={leaveRequests} />
             ) : (
               <Card>
                 <CardHeader>

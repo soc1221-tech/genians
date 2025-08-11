@@ -46,7 +46,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertLeaveRequestSchema.parse(req.body);
       const days = calculateDays(validatedData.startDate, validatedData.endDate);
       
-      const user = await storage.getUser(req.user.id);
+      const user = await storage.getUser((req.user as any).id);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -59,13 +59,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const leaveRequest = await storage.createLeaveRequest({
         ...validatedData,
-        userId: req.user.id,
+        userId: (req.user as any).id,
         days,
       });
 
       // Update user's remaining leave balance
       const newBalance = user.remainingLeave - days;
-      await storage.updateUserLeaveBalance(req.user.id, newBalance);
+      await storage.updateUserLeaveBalance((req.user as any).id, newBalance);
 
       // Send Slack notification
       await sendLeaveRequestNotification(
@@ -85,7 +85,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/leave/mine", requireAuth, async (req, res) => {
     try {
-      const requests = await storage.getUserLeaveRequests(req.user.id);
+      const requests = await storage.getUserLeaveRequests((req.user as any).id);
       res.json(requests);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch leave requests" });
@@ -155,6 +155,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ message: "Password changed successfully" });
     } catch (error) {
       res.status(400).json({ message: "Invalid password change data" });
+    }
+  });
+
+  // Update leave request
+  app.put("/api/leave/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const existingRequest = await storage.getLeaveRequestById(id);
+      
+      if (!existingRequest) {
+        return res.status(404).json({ message: "Leave request not found" });
+      }
+
+      // Check if user owns this request or is admin
+      if (existingRequest.userId !== req.user!.id && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Not authorized to update this request" });
+      }
+
+      const validatedData = insertLeaveRequestSchema.parse(req.body);
+      
+      // Calculate old and new days
+      const oldDays = existingRequest.days;
+      const newDays = calculateDays(validatedData.startDate, validatedData.endDate);
+      
+      // Update user's leave balance
+      const user = await storage.getUser(existingRequest.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const balanceAdjustment = oldDays - newDays; // positive means giving back days
+      const newBalance = user.remainingLeave + balanceAdjustment;
+      
+      if (newBalance < 0) {
+        return res.status(400).json({ message: "Insufficient leave balance for this change" });
+      }
+
+      // Update both the request and the user's balance
+      const updatedRequest = await storage.updateLeaveRequest(id, {
+        ...validatedData,
+        days: newDays,
+      });
+      
+      await storage.updateUserLeaveBalance(existingRequest.userId, newBalance);
+
+      res.json(updatedRequest);
+    } catch (error) {
+      res.status(400).json({ message: "Invalid leave request data" });
+    }
+  });
+
+  // Delete leave request
+  app.delete("/api/leave/:id", requireAuth, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const existingRequest = await storage.getLeaveRequestById(id);
+      
+      if (!existingRequest) {
+        return res.status(404).json({ message: "Leave request not found" });
+      }
+
+      // Check if user owns this request or is admin
+      if (existingRequest.userId !== req.user!.id && req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Not authorized to delete this request" });
+      }
+
+      // Restore user's leave balance
+      const user = await storage.getUser(existingRequest.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const newBalance = user.remainingLeave + existingRequest.days;
+      await storage.updateUserLeaveBalance(existingRequest.userId, newBalance);
+      
+      // Delete the request
+      await storage.deleteLeaveRequest(id);
+
+      res.json({ message: "Leave request deleted successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete leave request" });
     }
   });
 

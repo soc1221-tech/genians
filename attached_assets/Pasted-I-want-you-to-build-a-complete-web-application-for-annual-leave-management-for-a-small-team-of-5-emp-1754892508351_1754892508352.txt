@@ -1,0 +1,110 @@
+I want you to build a complete web application for annual leave management for a small team of 5 employees.
+The web app should have the following requirements and features:
+
+1. User Roles
+
+Admin role: Can create employee accounts, assign each employee a total annual leave quota (e.g., 15 days/year), and view all employees' leave history.
+
+Employee role: Can log in, see their remaining leave days, and request leave via a calendar interface.
+
+2. Leave Management
+
+When an employee submits a leave request, they must select:
+
+Date(s) on a calendar (can be multiple days)
+
+Reason for leave (text input)
+
+Once submitted, the requested leave days should automatically be deducted from the employee’s remaining leave quota.
+
+Prevent negative leave balance (cannot request more days than available).
+
+3. Calendar UI
+
+Use a modern calendar component (e.g., FullCalendar or similar) to allow employees to pick dates and see their leave schedule.
+
+Each employee should only see their own leave entries, but the admin should see all employees' entries.
+
+4. Notifications
+
+Integrate with Slack Incoming Webhook.
+
+When an employee submits a leave request, send a Slack message to a specific channel with:
+
+Employee name
+
+Requested dates
+
+Reason for leave
+
+Remaining leave balance
+
+5. Authentication
+
+Implement login/logout functionality.
+
+Store passwords securely (hashed).
+
+Use simple email/password authentication (no OAuth needed).
+
+6. Technology Stack
+
+Backend: Node.js (Express.js) with MongoDB or PostgreSQL.
+
+Frontend: React.js with TailwindCSS (clean and responsive UI).
+
+Calendar: FullCalendar or similar.
+
+Notifications: Slack webhook integration via axios or fetch.
+
+7. Backend API Endpoints
+
+POST /api/admin/create-employee → Create employee with initial leave quota.
+
+GET /api/admin/employees → Get all employees and their leave balances.
+
+POST /api/leave/request → Employee submits leave request.
+
+GET /api/leave/mine → Get logged-in employee's leave history.
+
+GET /api/leave/all → Get all leave requests (admin only).
+
+POST /api/auth/login → Login.
+
+POST /api/auth/register → Register (admin only for employees).
+
+8. Data Models
+
+User: { id, name, email, passwordHash, role, totalLeave, remainingLeave }
+
+LeaveRequest: { id, userId, startDate, endDate, reason, status }
+
+9. UI Pages
+
+Login Page
+
+Admin Dashboard (employee list, leave balances, create new employee)
+
+Employee Dashboard (calendar, request leave form, remaining leave counter)
+
+10. Additional Requirements
+
+Use JWT for authentication.
+
+Protect admin-only routes.
+
+Store Slack Webhook URL in .env file for security.
+
+Frontend should automatically update leave balance after a request is approved.
+
+Please provide:
+
+Complete backend code (Node.js + Express + database schema + Slack integration).
+
+Complete frontend code (React + Tailwind + FullCalendar).
+
+Instructions on how to run both frontend and backend locally.
+
+Example .env file structure.
+
+The UI should be simple, modern, and mobile-friendly.

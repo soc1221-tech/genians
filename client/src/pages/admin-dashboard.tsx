@@ -1,24 +1,15 @@
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { Redirect } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { Redirect, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarCheck, Users, Clock, UserCheck, Calendar, LogOut, ShieldQuestion, Search } from "lucide-react";
+import { CalendarCheck, Users, UserCheck, Calendar, LogOut, ShieldQuestion, UserPlus } from "lucide-react";
 import { CalendarComponent } from "@/components/calendar";
 import { EmployeeList } from "@/components/employee-list";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { insertUserSchema, type InsertUser, type User, type LeaveRequest } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { type User, type LeaveRequest } from "@shared/schema";
 
 type AdminStats = {
   totalEmployees: number;
-  pendingRequests: number;
   onLeaveToday: number;
   thisMonth: number;
 };
@@ -27,7 +18,6 @@ type LeaveRequestWithUser = LeaveRequest & { user: User };
 
 export default function AdminDashboard() {
   const { user, logoutMutation } = useAuth();
-  const { toast } = useToast();
 
   if (user?.role !== "admin") {
     return <Redirect to="/" />;
@@ -44,44 +34,6 @@ export default function AdminDashboard() {
   const { data: allLeaveRequests = [] } = useQuery<LeaveRequestWithUser[]>({
     queryKey: ["/api/leave/all"],
   });
-
-  const addEmployeeForm = useForm<InsertUser>({
-    resolver: zodResolver(insertUserSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      role: "employee" as const,
-      totalLeave: 15,
-    },
-  });
-
-  const addEmployeeMutation = useMutation({
-    mutationFn: async (data: InsertUser) => {
-      const res = await apiRequest("POST", "/api/register", data);
-      return await res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/employees"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
-      addEmployeeForm.reset();
-      toast({
-        title: "Employee added",
-        description: "New employee account created successfully",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to add employee",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const onAddEmployee = (data: InsertUser) => {
-    addEmployeeMutation.mutate(data);
-  };
 
   const handleLogout = () => {
     logoutMutation.mutate();
@@ -121,6 +73,12 @@ export default function AdminDashboard() {
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                 Admin
               </span>
+              <Link href="/admin/add-employee">
+                <Button variant="outline" size="sm" data-testid="button-add-employee-nav">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Add Employee
+                </Button>
+              </Link>
             </div>
             
             <div className="flex items-center space-x-4">
@@ -143,7 +101,7 @@ export default function AdminDashboard() {
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Admin Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -158,19 +116,7 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pending Requests</p>
-                  <p className="text-3xl font-bold text-yellow-600" data-testid="text-pending-requests">{stats?.pendingRequests || 0}</p>
-                </div>
-                <div className="h-12 w-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-yellow-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+
           
           <Card>
             <CardContent className="pt-6">
@@ -201,116 +147,17 @@ export default function AdminDashboard() {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Add Employee Form */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Add New Employee</CardTitle>
-                <CardDescription>Create a new employee account</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...addEmployeeForm}>
-                  <form onSubmit={addEmployeeForm.handleSubmit(onAddEmployee)} className="space-y-4">
-                    <FormField
-                      control={addEmployeeForm.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Full Name</FormLabel>
-                          <FormControl>
-                            <Input 
-                              placeholder="John Smith" 
-                              data-testid="input-employee-name"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={addEmployeeForm.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="email"
-                              placeholder="john@company.com" 
-                              data-testid="input-employee-email"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={addEmployeeForm.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Initial Password</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="password"
-                              placeholder="••••••••" 
-                              data-testid="input-employee-password"
-                              {...field} 
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={addEmployeeForm.control}
-                      name="totalLeave"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Annual Leave Quota</FormLabel>
-                          <FormControl>
-                            <Input 
-                              type="number"
-                              min="0"
-                              max="50"
-                              data-testid="input-leave-quota"
-                              {...field}
-                              onChange={(e) => field.onChange(parseInt(e.target.value, 10) || 0)}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-blue-600 hover:bg-blue-700"
-                      disabled={addEmployeeMutation.isPending}
-                      data-testid="button-add-employee"
-                    >
-                      {addEmployeeMutation.isPending ? "Adding Employee..." : "Add Employee"}
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Team Calendar */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Team Leave Calendar</CardTitle>
-                <CardDescription>Overview of all team leave requests</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <CalendarComponent events={calendarEvents} />
-              </CardContent>
-            </Card>
-          </div>
+        {/* Team Calendar */}
+        <div className="mb-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Team Leave Calendar</CardTitle>
+              <CardDescription>Overview of all team leave requests</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <CalendarComponent events={calendarEvents} />
+            </CardContent>
+          </Card>
         </div>
 
         {/* Employee Management */}

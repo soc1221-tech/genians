@@ -1,8 +1,8 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth } from "./auth";
-import { insertLeaveRequestSchema } from "@shared/schema";
+import { setupAuth, hashPassword, comparePasswords } from "./auth";
+import { insertLeaveRequestSchema, changePasswordSchema } from "@shared/schema";
 import { sendLeaveRequestNotification } from "./slack";
 
 function requireAuth(req: any, res: any, next: any) {
@@ -111,8 +111,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const thisMonth = new Date();
       const firstDayOfMonth = new Date(thisMonth.getFullYear(), thisMonth.getMonth(), 1).toISOString().split('T')[0];
       const lastDayOfMonth = new Date(thisMonth.getFullYear(), thisMonth.getMonth() + 1, 0).toISOString().split('T')[0];
-
-      const pendingRequests = allRequests.filter(req => req.status === "pending").length;
       
       const onLeaveToday = allRequests.filter(req => 
         req.status === "approved" && 
@@ -128,12 +126,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({
         totalEmployees: employees.length,
-        pendingRequests,
         onLeaveToday,
         thisMonth: thisMonthRequests,
       });
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch admin stats" });
+    }
+  });
+
+  // Change password route
+  app.post("/api/change-password", requireAuth, async (req, res) => {
+    try {
+      const validatedData = changePasswordSchema.parse(req.body);
+      const user = await storage.getUser(req.user!.id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const isCurrentPasswordValid = await comparePasswords(validatedData.currentPassword, user.password);
+      if (!isCurrentPasswordValid) {
+        return res.status(400).json({ message: "Current password is incorrect" });
+      }
+
+      const hashedNewPassword = await hashPassword(validatedData.newPassword);
+      await storage.updateUserPassword(user.id, hashedNewPassword);
+
+      res.json({ message: "Password changed successfully" });
+    } catch (error) {
+      res.status(400).json({ message: "Invalid password change data" });
     }
   });
 

@@ -1,15 +1,18 @@
+import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarCheck, Calendar, CheckCircle, Clock, LogOut, User } from "lucide-react";
+import { CalendarCheck, Calendar, CheckCircle, Clock, LogOut, User, Settings } from "lucide-react";
 import { LeaveRequestForm } from "@/components/leave-request-form";
 import { CalendarComponent } from "@/components/calendar";
+import { ChangePasswordForm } from "@/components/change-password-form";
 import type { LeaveRequest, User as UserType } from "@shared/schema";
 
 export default function EmployeeDashboard() {
   const { user, logoutMutation } = useAuth();
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   if (user?.role === "admin") {
     return <Redirect to="/admin" />;
@@ -51,6 +54,15 @@ export default function EmployeeDashboard() {
             </div>
             
             <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowChangePassword(!showChangePassword)}
+                data-testid="button-settings"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Settings
+              </Button>
               <span className="text-sm text-gray-700" data-testid="text-username">{user.name}</span>
               <div className="h-8 w-8 bg-gray-300 rounded-full flex items-center justify-center">
                 <User className="h-4 w-4 text-gray-600" />
@@ -115,17 +127,21 @@ export default function EmployeeDashboard() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Leave Request Form */}
+          {/* Leave Request Form / Settings */}
           <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Request Leave</CardTitle>
-                <CardDescription>Submit a new leave request</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <LeaveRequestForm user={user} />
-              </CardContent>
-            </Card>
+            {showChangePassword ? (
+              <ChangePasswordForm />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Request Leave</CardTitle>
+                  <CardDescription>Submit a new leave request</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <LeaveRequestForm user={user} />
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Calendar */}

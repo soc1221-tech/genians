@@ -1,0 +1,55 @@
+I want you to modify the annual leave management web application specification with the following changes:
+
+1. "Add New Employee" menu location
+
+Remove the "Add New Employee" form from the main dashboard.
+
+Instead, create a top navigation menu item labeled "Add Employee".
+
+When the admin clicks this menu item, it should open a dedicated page or modal with the employee creation form.
+
+2. Remove Pending Requests
+
+Since employees do not require admin approval for leave requests, remove any "Pending Requests" tab or related functionality from both the admin and employee views.
+
+Once an employee submits a leave request, it should be immediately deducted from their leave balance and visible on the calendar.
+
+3. Login Page Placeholder Text
+
+Remove example values from the ID and Password input fields on the login page.
+
+Inputs should have empty placeholders or descriptive text like "Enter your ID" and "Enter your password", but no pre-filled values.
+
+4. Date Field Labels
+
+The current start date and end date fields display labels in Korean (e.g., 연도-월-일).
+
+Change these labels to English format (e.g., "YYYY-MM-DD").
+
+5. Password Change Feature for Employees
+
+Since the admin sets the employee’s initial ID and password, add a "Change Password" feature in the employee’s dashboard.
+
+The employee should be able to:
+
+Enter their current password
+
+Enter and confirm the new password
+
+Password should be securely updated in the database (hashed)
+
+Include appropriate validation and error handling (e.g., incorrect current password, mismatched new password confirmation).
+
+6. Keep All Other Features the Same
+
+Keep the original tech stack: Backend with Node.js + Express + PostgreSQL, Frontend with React + TailwindCSS + FullCalendar, Slack webhook integration, JWT authentication, and all existing leave tracking logic.
+
+Please provide:
+
+Updated backend code (Node.js + Express + PostgreSQL) reflecting the above changes.
+
+Updated frontend code (React + TailwindCSS + FullCalendar) reflecting the above changes.
+
+Instructions on how to run both frontend and backend locally.
+
+Example .env file structure.

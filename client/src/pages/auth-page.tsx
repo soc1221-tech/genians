@@ -87,7 +87,7 @@ export default function AuthPage() {
                             <FormControl>
                               <Input 
                                 type="email" 
-                                placeholder="you@company.com" 
+                                placeholder="Enter your company email" 
                                 data-testid="input-email"
                                 {...field} 
                               />
@@ -105,7 +105,7 @@ export default function AuthPage() {
                             <FormControl>
                               <Input 
                                 type="password" 
-                                placeholder="••••••••" 
+                                placeholder="Enter your password" 
                                 data-testid="input-password"
                                 {...field} 
                               />

@@ -12,6 +12,7 @@ export interface IStorage {
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserLeaveBalance(userId: string, remainingLeave: number): Promise<void>;
+  updateUserPassword(userId: string, hashedPassword: string): Promise<void>;
   getAllUsers(): Promise<User[]>;
   
   createLeaveRequest(request: InsertLeaveRequest): Promise<LeaveRequest>;
@@ -57,6 +58,13 @@ export class DatabaseStorage implements IStorage {
     await db
       .update(users)
       .set({ remainingLeave })
+      .where(eq(users.id, userId));
+  }
+
+  async updateUserPassword(userId: string, hashedPassword: string): Promise<void> {
+    await db
+      .update(users)
+      .set({ password: hashedPassword })
       .where(eq(users.id, userId));
   }
 

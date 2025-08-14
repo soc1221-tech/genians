@@ -1,33 +1,41 @@
-import { useAuth } from "@/hooks/use-auth";
-import { Loader2 } from "lucide-react";
-import { Redirect, Route } from "wouter";
+import { ReactNode } from "react";
+import { useAuth } from "../hooks/use-auth";
+import { useLocation } from "wouter";
 
-export function ProtectedRoute({
-  path,
-  component: Component,
-}: {
-  path: string;
-  component: () => React.JSX.Element;
-}) {
-  const { user, isLoading } = useAuth();
+interface ProtectedRouteProps {
+  children: ReactNode;
+  requiredRole?: "admin" | "employee";
+}
 
-  if (isLoading) {
+export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
+  const { user, loading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  if (loading) {
     return (
-      <Route path={path}>
-        <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-border" />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">로딩 중...</p>
         </div>
-      </Route>
+      </div>
     );
   }
 
   if (!user) {
-    return (
-      <Route path={path}>
-        <Redirect to="/auth" />
-      </Route>
-    );
+    setLocation("/login");
+    return null;
   }
 
-  return <Route path={path} component={Component} />;
+  if (requiredRole && user.role !== requiredRole) {
+    // 권한이 없는 경우 적절한 페이지로 리다이렉트
+    if (user.role === "admin") {
+      setLocation("/admin");
+    } else {
+      setLocation("/employee");
+    }
+    return null;
+  }
+
+  return <>{children}</>;
 }

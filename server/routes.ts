@@ -1,9 +1,9 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { setupAuth, hashPassword, comparePasswords } from "./auth";
-import { insertLeaveRequestSchema, changePasswordSchema } from "@shared/schema";
-import { sendLeaveRequestNotification } from "./slack";
+import { storage } from "./storage.js";
+import { setupAuth, hashPassword, comparePasswords } from "./auth.js";
+import { insertLeaveRequestSchema, changePasswordSchema } from "../shared/schema.js";
+import { sendLeaveRequestNotification } from "./slack.js";
 
 function requireAuth(req: any, res: any, next: any) {
   if (!req.isAuthenticated()) {

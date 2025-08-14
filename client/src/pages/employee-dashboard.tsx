@@ -9,7 +9,7 @@ import { LeaveRequestForm } from "@/components/leave-request-form";
 import { CalendarComponent } from "@/components/calendar";
 import { ChangePasswordForm } from "@/components/change-password-form";
 import { LeaveList } from "@/components/leave-list";
-import type { LeaveRequest, User as UserType } from "@shared/schema";
+import type { LeaveRequest } from "@shared/schema";
 
 export default function EmployeeDashboard() {
   const { user, logoutMutation } = useAuth();
@@ -54,7 +54,7 @@ export default function EmployeeDashboard() {
               </div>
               <h1 className="text-xl font-semibold text-gray-900">LeaveFlow</h1>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <Button
                 variant="ghost"
@@ -84,8 +84,8 @@ export default function EmployeeDashboard() {
               <div className="h-8 w-8 bg-gray-300 rounded-full flex items-center justify-center">
                 <User className="h-4 w-4 text-gray-600" />
               </div>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 onClick={handleLogout}
                 data-testid="button-logout"
@@ -113,7 +113,7 @@ export default function EmployeeDashboard() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -127,7 +127,7 @@ export default function EmployeeDashboard() {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -206,7 +206,7 @@ export default function EmployeeDashboard() {
                       {leaveRequests.map((request) => (
                         <tr key={request.id} data-testid={`row-leave-request-${request.id}`}>
                           <td className="py-3 px-4 text-gray-900">
-                            {request.startDate === request.endDate 
+                            {request.startDate === request.endDate
                               ? new Date(request.startDate).toLocaleDateString()
                               : `${new Date(request.startDate).toLocaleDateString()} - ${new Date(request.endDate).toLocaleDateString()}`
                             }
@@ -214,11 +214,10 @@ export default function EmployeeDashboard() {
                           <td className="py-3 px-4 text-gray-900">{request.days}</td>
                           <td className="py-3 px-4 text-gray-600">{request.reason}</td>
                           <td className="py-3 px-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              request.status === 'approved' ? 'bg-green-100 text-green-800' :
-                              request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${request.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                  'bg-red-100 text-red-800'
+                              }`}>
                               {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                             </span>
                           </td>

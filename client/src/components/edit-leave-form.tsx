@@ -1,16 +1,15 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { insertLeaveRequestSchema, type InsertLeaveRequest, type LeaveRequest } from "@shared/schema";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { X } from "lucide-react";
 
 interface EditLeaveFormProps {
@@ -20,6 +19,7 @@ interface EditLeaveFormProps {
 
 export function EditLeaveForm({ request, onClose }: EditLeaveFormProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const form = useForm<InsertLeaveRequest>({
     resolver: zodResolver(insertLeaveRequestSchema),
@@ -118,17 +118,17 @@ export function EditLeaveForm({ request, onClose }: EditLeaveFormProps) {
                 <FormItem>
                   <FormLabel>Start Date</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="date" 
+                    <Input
+                      type="date"
                       data-testid="input-edit-start-date"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="endDate"
@@ -136,17 +136,17 @@ export function EditLeaveForm({ request, onClose }: EditLeaveFormProps) {
                 <FormItem>
                   <FormLabel>End Date</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="date" 
+                    <Input
+                      type="date"
                       data-testid="input-edit-end-date"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="reason"
@@ -154,28 +154,28 @@ export function EditLeaveForm({ request, onClose }: EditLeaveFormProps) {
                 <FormItem>
                   <FormLabel>Reason</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Reason for leave"
                       data-testid="input-edit-reason"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <div className="flex space-x-2">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="flex-1 bg-blue-600 hover:bg-blue-700"
                 disabled={updateMutation.isPending}
                 data-testid="button-update-leave"
               >
                 {updateMutation.isPending ? "Updating..." : "Update Leave"}
               </Button>
-              
-              <Button 
+
+              <Button
                 type="button"
                 variant="destructive"
                 onClick={handleDelete}

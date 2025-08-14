@@ -4,12 +4,13 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
-import { storage } from "./storage";
-import { User as SelectUser, insertUserSchema, loginSchema } from "@shared/schema";
+import { storage } from "./storage.js";
+import { User as SelectUser, loginSchema } from "../shared/schema.js";
+import { DEFAULT_ADMIN } from "./firebase.js";
 
 declare global {
   namespace Express {
-    interface User extends SelectUser {}
+    interface User extends SelectUser { }
   }
 }
 
@@ -51,11 +52,23 @@ export function setupAuth(app: Express) {
       { usernameField: "email" },
       async (email, password, done) => {
         try {
-          const user = await storage.getUserByEmail(email);
-          if (!user || !(await comparePasswords(password, user.password))) {
+          // 기본 admin 계정 확인
+          if (email === DEFAULT_ADMIN.email && password === DEFAULT_ADMIN.password) {
+            return done(null, DEFAULT_ADMIN);
+          }
+
+          // Firebase에서 사용자 조회
+          try {
+            const user = await storage.getUserByEmail(email);
+            if (!user || !(await comparePasswords(password, user.password))) {
+              return done(null, false);
+            }
+            return done(null, user);
+          } catch (dbError) {
+            // Firebase가 사용 불가능한 경우, 기본 admin만 허용
+            console.log("Firebase not available, using default admin only");
             return done(null, false);
           }
-          return done(null, user);
         } catch (error) {
           return done(error);
         }
@@ -66,48 +79,34 @@ export function setupAuth(app: Express) {
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: string, done) => {
     try {
-      const user = await storage.getUser(id);
-      done(null, user);
+      // 기본 admin 계정 확인
+      if (id === DEFAULT_ADMIN.id) {
+        return done(null, DEFAULT_ADMIN);
+      }
+
+      // Firebase에서 사용자 조회
+      try {
+        const user = await storage.getUser(id);
+        done(null, user);
+      } catch (dbError) {
+        // Firebase가 사용 불가능한 경우, 기본 admin만 허용
+        if (id === DEFAULT_ADMIN.id) {
+          done(null, DEFAULT_ADMIN);
+        } else {
+          done(dbError);
+        }
+      }
     } catch (error) {
       done(error);
     }
   });
 
-  app.post("/api/register", async (req, res, next) => {
-    try {
-      const validatedData = insertUserSchema.parse(req.body);
-      
-      const existingUser = await storage.getUserByEmail(validatedData.email);
-      if (existingUser) {
-        return res.status(400).json({ message: "Email already exists" });
-      }
-
-      const user = await storage.createUser({
-        ...validatedData,
-        password: await hashPassword(validatedData.password),
-      });
-
-      req.login(user, (err) => {
-        if (err) return next(err);
-        res.status(201).json({ ...user, password: undefined });
-      });
-    } catch (error) {
-      res.status(400).json({ message: "Invalid registration data" });
-    }
-  });
-
   app.post("/api/login", (req, res, next) => {
-    const validationResult = loginSchema.safeParse(req.body);
-    if (!validationResult.success) {
-      return res.status(400).json({ message: "Invalid login data" });
-    }
-
-    passport.authenticate("local", (err: any, user: SelectUser | false) => {
+    passport.authenticate("local", (err: any, user: SelectUser | false, info: any) => {
       if (err) return next(err);
       if (!user) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-
       req.login(user, (err) => {
         if (err) return next(err);
         res.json({ ...user, password: undefined });
@@ -118,12 +117,15 @@ export function setupAuth(app: Express) {
   app.post("/api/logout", (req, res, next) => {
     req.logout((err) => {
       if (err) return next(err);
-      res.sendStatus(200);
+      res.json({ message: "Logged out successfully" });
     });
   });
 
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    res.json({ ...req.user, password: undefined });
+    if (req.isAuthenticated()) {
+      res.json({ ...req.user, password: undefined });
+    } else {
+      res.status(401).json({ message: "Not authenticated" });
+    }
   });
 }

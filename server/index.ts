@@ -121,6 +121,8 @@ app.get("/api/health", (req, res) => {
       });
     } else {
       log("Production server ready for Vercel");
+      // In production (Vercel), we don't start the server
+      // Vercel handles the serverless function execution
     }
   } catch (error) {
     console.error("Failed to start server:", error);
@@ -128,5 +130,5 @@ app.get("/api/health", (req, res) => {
   }
 })();
 
-// Export for Vercel
+// Export for Vercel serverless functions
 export default app;

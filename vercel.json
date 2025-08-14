@@ -1,6 +1,7 @@
 {
-  "buildCommand": "npm run vercel-build",
+  "buildCommand": "node vercel-build.js",
   "outputDirectory": "client/dist",
+  "installCommand": "npm install",
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -17,5 +18,7 @@
       "maxDuration": 30
     }
   },
-  "installCommand": "npm run install:all"
+  "env": {
+    "NODE_ENV": "production"
+  }
 }

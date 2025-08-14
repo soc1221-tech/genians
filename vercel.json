@@ -1,11 +1,10 @@
 {
   "buildCommand": "npm run vercel-build",
   "outputDirectory": "client/dist",
-  "framework": "vite",
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/server/api/$1"
+      "destination": "/api/index.js"
     },
     {
       "source": "/(.*)",
@@ -13,11 +12,10 @@
     }
   ],
   "functions": {
-    "server/**/*.ts": {
-      "runtime": "nodejs18.x"
+    "api/index.js": {
+      "runtime": "nodejs20.x",
+      "maxDuration": 30
     }
   },
-  "env": {
-    "NODE_ENV": "production"
-  }
+  "installCommand": "npm run install:all"
 }

@@ -119,5 +119,8 @@
   "workspaces": [
     "client",
     "server"
-  ]
+  ],
+  "engines": {
+    "node": "22.x"
+  }
 }

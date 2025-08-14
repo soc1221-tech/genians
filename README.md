@@ -1,11 +1,11 @@
 # LeaveFlow - Annual Leave Management System
 
-Firebase를 사용하는 연차 관리 시스템입니다. React, TypeScript, Express, Firebase로 구축되었습니다.
+Supabase를 사용하는 연차 관리 시스템입니다. React, TypeScript, Express, Supabase로 구축되었습니다.
 
 ## 🚀 Features
 
-- **Firebase Authentication**: 안전한 사용자 인증 시스템
-- **Firestore Database**: 실시간 데이터베이스
+- **Supabase Authentication**: 안전한 사용자 인증 시스템
+- **PostgreSQL Database**: 강력한 관계형 데이터베이스
 - **Leave Management**: 연차 요청, 승인, 추적
 - **Admin Dashboard**: 팀 연차 상태 종합 개요
 - **Employee Dashboard**: 개인 연차 추적 및 요청
@@ -24,37 +24,37 @@ LeaveFlow/
 │   ├── index.ts          # Server entry point
 │   ├── routes.ts         # API routes
 │   ├── auth.ts           # Authentication logic
-│   ├── storage.ts        # Firebase operations
-│   ├── firebase.ts       # Firebase configuration
+│   ├── storage.ts        # Supabase operations
+│   ├── db.ts             # Database configuration
 │   └── package.json      # Backend dependencies
 ├── shared/                # Shared schemas and types
 ├── vercel.json           # Vercel deployment configuration
 └── README.md             # This file
 ```
 
-## 🚀 Firebase Setup
+## 🚀 Supabase Setup
 
 ### Prerequisites
 
-1. **Firebase Account**: [firebase.google.com](https://firebase.google.com)에서 계정 생성
+1. **Supabase Account**: [supabase.com](https://supabase.com)에서 계정 생성
 2. **Node.js 18+**: Node.js가 설치되어 있어야 함
 3. **Vercel Account**: [vercel.com](https://vercel.com)에서 계정 생성
 
 ### Quick Setup
 
-1. **Firebase 프로젝트 생성**:
-   - [Firebase Console](https://console.firebase.google.com)에서 새 프로젝트 생성
-   - Authentication과 Firestore Database 활성화
+1. **Supabase 프로젝트 생성**:
+   - [Supabase Dashboard](https://app.supabase.com)에서 새 프로젝트 생성
+   - Authentication과 Database 활성화
 
 2. **환경 변수 설정**:
-   - `FIREBASE_SETUP.md` 파일 참조하여 환경 변수 설정
+   - `.env` 파일에 Supabase 설정 추가
 
 3. **Vercel에 배포**:
    ```bash
    vercel --prod
    ```
 
-자세한 설정 방법은 [FIREBASE_SETUP.md](./FIREBASE_SETUP.md)를 참조하세요.
+자세한 설정 방법은 [SUPABASE_SETUP.md](./SUPABASE_SETUP.md)를 참조하세요.
 
 ## 🔑 Test Accounts
 
@@ -75,7 +75,7 @@ LeaveFlow/
 ### Prerequisites
 
 - Node.js 18+ 
-- Firebase 프로젝트
+- Supabase 프로젝트
 - npm 또는 yarn
 
 ### Setup
@@ -92,7 +92,7 @@ LeaveFlow/
    ```
 
 3. **환경 변수 설정**:
-   - `FIREBASE_SETUP.md` 참조하여 `.env` 파일 생성
+   - `.env` 파일에 Supabase 설정 추가
 
 4. **개발 서버 시작**:
    ```bash
@@ -117,7 +117,7 @@ LeaveFlow/
 
 ## 🔧 API Endpoints
 
-- `POST /api/auth/login` - 사용자 인증
+- `POST /api/login` - 사용자 인증
 - `POST /api/leave/request` - 연차 요청 제출
 - `GET /api/leave/mine` - 사용자의 연차 요청 조회
 - `GET /api/leave/all` - 모든 연차 요청 조회 (admin only)
@@ -129,9 +129,9 @@ LeaveFlow/
 ## 🎨 Tech Stack
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS, Radix UI
-- **Backend**: Express.js, TypeScript, Firebase Admin SDK
-- **Database**: Firebase Firestore
-- **Authentication**: Firebase Authentication
+- **Backend**: Express.js, TypeScript, Passport.js
+- **Database**: Supabase (PostgreSQL) with Drizzle ORM
+- **Authentication**: Session-based with bcrypt
 - **Deployment**: Vercel (Frontend + Backend)
 
 ## 🌐 Deployment to Vercel
@@ -141,15 +141,14 @@ LeaveFlow/
 Vercel 대시보드에서 다음 환경 변수를 설정하세요:
 
 **Server Environment Variables:**
-- `FIREBASE_PROJECT_ID`
-- `FIREBASE_PRIVATE_KEY`
-- `FIREBASE_CLIENT_EMAIL`
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+- `SUPABASE_DB_URL`
 - `SESSION_SECRET`
 
 **Client Environment Variables:**
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
 
 ### Deployment Steps
 
@@ -173,8 +172,8 @@ Vercel 대시보드에서 다음 환경 변수를 설정하세요:
 
 ## 🔐 Security Features
 
-- Firebase Authentication으로 안전한 사용자 인증
-- Firestore 보안 규칙으로 데이터 접근 제어
+- Supabase Authentication으로 안전한 사용자 인증
+- PostgreSQL Row Level Security (RLS)로 데이터 접근 제어
 - 환경 변수를 통한 민감한 정보 보호
 - 세션 기반 인증으로 보안 강화
 
@@ -196,10 +195,10 @@ MIT License - LICENSE 파일 참조
 
 1. 콘솔에서 오류 메시지 확인
 2. 환경 변수가 올바르게 설정되었는지 확인
-3. Firebase 프로젝트 설정 확인
-4. [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) 참조
+3. Supabase 프로젝트 설정 확인
+4. [SUPABASE_SETUP.md](./SUPABASE_SETUP.md) 참조
 5. Vercel 배포 로그 확인
 
 ---
 
-**Note**: 이 애플리케이션은 Firebase의 강력한 기능을 활용하여 구축되었습니다. 프로덕션 환경에서는 추가적인 보안 기능과 모니터링을 고려하세요. 
+**Note**: 이 애플리케이션은 Supabase의 강력한 기능을 활용하여 구축되었습니다. 프로덕션 환경에서는 추가적인 보안 기능과 모니터링을 고려하세요. 

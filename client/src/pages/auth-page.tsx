@@ -1,87 +1,112 @@
-import { useState } from "react";
-import { useAuth } from "../hooks/use-auth";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { useToast } from "../hooks/use-toast";
-import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
+import { Redirect } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CalendarCheck } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { loginSchema, type LoginData } from "@shared/schema";
 
 export default function AuthPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
-  const { toast } = useToast();
-  const [, setLocation] = useLocation();
+  const { user, loginMutation } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  if (user) {
+    return <Redirect to={user.role === "admin" ? "/admin" : "/"} />;
+  }
 
-    try {
-      await login(email, password);
-      toast({
-        title: "로그인 성공!",
-        description: "관리자 대시보드로 이동합니다.",
-      });
-      setLocation("/admin");
-    } catch (error: any) {
-      toast({
-        title: "로그인 실패",
-        description: error.message || "이메일과 비밀번호를 확인해주세요.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const loginForm = useForm<LoginData>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onLogin = (data: LoginData) => {
+    loginMutation.mutate(data);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">LeaveFlow</CardTitle>
-          <CardDescription>관리자 로그인</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">이메일</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@leaveflow.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex">
+      {/* Centered Login Form */}
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <div className="mx-auto h-16 w-16 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
+              <CalendarCheck className="h-8 w-8 text-white" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">비밀번호</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="비밀번호를 입력하세요"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "로그인 중..." : "로그인"}
-            </Button>
-          </form>
+            <h2 className="text-3xl font-bold text-gray-900">LeaveFlow</h2>
+            <p className="text-gray-600 mt-2">Annual Leave Management System</p>
+          </div>
 
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-semibold text-blue-900 mb-2">테스트 계정</h3>
-            <p className="text-sm text-blue-800">
-              <strong>이메일:</strong> admin@leaveflow.com<br />
-              <strong>비밀번호:</strong> admin123
+          <Card className="w-full">
+            <CardHeader>
+              <CardTitle>Welcome</CardTitle>
+              <CardDescription>
+                Sign in to your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...loginForm}>
+                <form onSubmit={loginForm.handleSubmit(onLogin)} className="space-y-4">
+                  <FormField
+                    control={loginForm.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email Address</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="email"
+                            placeholder="Enter your company email"
+                            data-testid="input-email"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={loginForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="Enter your password"
+                            data-testid="input-password"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button
+                    type="submit"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    disabled={loginMutation.isPending}
+                    data-testid="button-login"
+                  >
+                    {loginMutation.isPending ? "Signing In..." : "Sign In"}
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+
+          <div className="text-center">
+            <p className="text-sm text-gray-600">
+              Admin: admin@leaveflow.com / admin123
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

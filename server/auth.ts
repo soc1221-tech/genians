@@ -6,7 +6,6 @@ import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 import { storage } from "./storage.js";
 import { User as SelectUser, loginSchema } from "../shared/schema.js";
-import { DEFAULT_ADMIN } from "./firebase.js";
 
 declare global {
   namespace Express {
@@ -52,23 +51,11 @@ export function setupAuth(app: Express) {
       { usernameField: "email" },
       async (email, password, done) => {
         try {
-          // 기본 admin 계정 확인
-          if (email === DEFAULT_ADMIN.email && password === DEFAULT_ADMIN.password) {
-            return done(null, DEFAULT_ADMIN);
-          }
-
-          // Firebase에서 사용자 조회
-          try {
-            const user = await storage.getUserByEmail(email);
-            if (!user || !(await comparePasswords(password, user.password))) {
-              return done(null, false);
-            }
-            return done(null, user);
-          } catch (dbError) {
-            // Firebase가 사용 불가능한 경우, 기본 admin만 허용
-            console.log("Firebase not available, using default admin only");
+          const user = await storage.getUserByEmail(email);
+          if (!user || !(await comparePasswords(password, user.password))) {
             return done(null, false);
           }
+          return done(null, user);
         } catch (error) {
           return done(error);
         }
@@ -79,23 +66,8 @@ export function setupAuth(app: Express) {
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: string, done) => {
     try {
-      // 기본 admin 계정 확인
-      if (id === DEFAULT_ADMIN.id) {
-        return done(null, DEFAULT_ADMIN);
-      }
-
-      // Firebase에서 사용자 조회
-      try {
-        const user = await storage.getUser(id);
-        done(null, user);
-      } catch (dbError) {
-        // Firebase가 사용 불가능한 경우, 기본 admin만 허용
-        if (id === DEFAULT_ADMIN.id) {
-          done(null, DEFAULT_ADMIN);
-        } else {
-          done(dbError);
-        }
-      }
+      const user = await storage.getUser(id);
+      done(null, user);
     } catch (error) {
       done(error);
     }

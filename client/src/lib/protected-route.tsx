@@ -1,41 +1,22 @@
-import { ReactNode } from "react";
-import { useAuth } from "../hooks/use-auth";
-import { useLocation } from "wouter";
+import React from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { Redirect } from "wouter";
 
 interface ProtectedRouteProps {
-  children: ReactNode;
-  requiredRole?: "admin" | "employee";
+  path: string;
+  component: () => React.JSX.Element | null;
 }
 
-export default function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { user, loading } = useAuth();
-  const [, setLocation] = useLocation();
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ component: Component }) => {
+  const { user, isLoading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">로딩 중...</p>
-        </div>
-      </div>
-    );
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
   if (!user) {
-    setLocation("/login");
-    return null;
+    return <Redirect to="/auth" />;
   }
 
-  if (requiredRole && user.role !== requiredRole) {
-    // 권한이 없는 경우 적절한 페이지로 리다이렉트
-    if (user.role === "admin") {
-      setLocation("/admin");
-    } else {
-      setLocation("/employee");
-    }
-    return null;
-  }
-
-  return <>{children}</>;
-}
+  return <Component />;
+};
